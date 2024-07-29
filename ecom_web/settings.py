@@ -140,3 +140,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 STRIPE_PUBLIC_KEY = 'pk_test_51PLpb0RvxOv0pDDUkms9W7DcwxKc6BI4pgyZgNZn4mZEsVdGKCEGWdpdI9Bx2e8qTMGr4MjeqI0OuUFFldk6mGmH00tmdb73Eh'
 STRIPE_SECRET_KEY = 'sk_test_51PLpb0RvxOv0pDDUI4veMFCE2COYJSO0wGObtI4yOX5fmjc5GtZjUl53fRbm9nmULLnJi5rXbHirO4U9kSV1IYwO00dTaOn3HA'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'orders.order.daraz@gmail.com'
+EMAIL_HOST_PASSWORD = 'jezothnianodszlt'
+EMAIL_USE_TLS = True

@@ -6,11 +6,12 @@ from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 import datetime
-
 from django.http import HttpResponse
 from polls1.models import *
+from .utils import send_email_to_user,forget_password_email
 from ecom_web import settings
 stripe.api_key = settings.STRIPE_SECRET_KEY
+import uuid
 
 def user_signUp(request):
     if request.method == 'POST':
@@ -26,6 +27,8 @@ def user_signUp(request):
             return HttpResponse('Username already exists')
 
         user = User.objects.create_user(username=username, email=email, password=password)
+        profile_user = Profile.objects.create(user = user)
+        profile_user.save()
         user.save()
 
         return redirect('log_in')
@@ -50,6 +53,43 @@ def user_log_in(request):
 def log_out(request):
     logout(request)
     return redirect('log_in')
+
+def password_reset(request):
+    try:
+        if request.method == 'POST':
+            username = request.POST.get('Username') 
+            user_flex = User.objects.get(username=username)
+            token=str(uuid.uuid4())
+            profile_obj = Profile.objects.get(user=user_flex)
+            profile_obj.forget_password_token = token
+            profile_obj.save()
+            forget_password_email(profile_obj.user.email,token)
+            return redirect('log_in')
+    except Exception as e:
+        print(e)
+    return render(request,'password_reset.html')
+
+def forget_password(request,token):
+    context = {}
+    try:
+        profile_user = Profile.objects.filter(forget_password_token=token).first()
+        if request.method == 'POST':
+            new_pass = request.POST.get('New Password')
+            con_pass = request.POST.get('Confirm Password')
+            if new_pass!=con_pass:
+                return HttpResponse("password are invalid!")
+            user_id = request.POST.get('userId')
+            user_obj = User.objects.get(id= user_id)
+            user_obj.set_password(new_pass)
+            user_obj.save()
+            return redirect('log_in')
+        context = {
+            'user_id':profile_user.user.id,
+        }
+        
+    except Exception as e:
+        print(e)
+    return render(request,'forget_password.html',context)
     
     
 @login_required
@@ -108,8 +148,6 @@ def home(request):
     product_edge= ProductModel.objects.get(item_title="Galaxy s7 Edge")
     cart_items = AddToCart.objects.all()
 
-
-
     
     data = {
         'user':user,
@@ -162,10 +200,21 @@ def about(request):
 def product(request):
     mobile_products = ProductModel.objects.filter(category__name="Mobile")
     tablet_products = ProductModel.objects.filter(category__name="Tablet")
-    context= {
+    items = ProductModel.objects.all()
+    categories = Category.objects.all()
+    
+    paginator = Paginator(items, 6)  
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'items': page_obj,
+        'categories': categories,
+        'prod': categories,
         'mobile_products':mobile_products,
         'tablet_products':tablet_products,
     }
+    
     return render(request, "product.html",context=context)
 
 
@@ -349,12 +398,25 @@ def checkout_payment(request):
             line_items=line_items,
             )
                 # return HttpResponse('Success')
+            send_email_to_user()
             return redirect(session.url)
     return render(request, "checkout_payment.html")
+
+# def send_email(request):
+#     send_email_to_user()
+#     return redirect('/')
 
 def checkout_complete(request):
     items = AddToCart.objects.filter(user=request.user).first()
     cart_items = AddToCart.objects.filter(user=request.user)
+    for i in cart_items:
+        price=i.price
+        image=i.image
+        name = i.product.item_title
+        quantity = i.quantity
+
+        odr_prd_mod = OrderProductDetails.objects.create(user=request.user,name=name,image=image,price=price,quantity=quantity)
+        odr_prd_mod.save()
    
     date = datetime.datetime.now()
     delivery_date_delta = datetime.timedelta(days=2)
@@ -429,19 +491,19 @@ def search_results(request):
 #         'products': page_obj,
 #     }
 #     return render(request, 'product.html', context=context)
-def product(request, product_category=None):
-    items = ProductModel.objects.all()
-    categories = Category.objects.all()
+# def product(request, product_category=None):
+#     items = ProductModel.objects.all()
+#     categories = Category.objects.all()
     
-    if product_category:
-        items = ProductModel.objects.filter(product_category__category_name=product_category)
-    paginator = Paginator(items, 6)  
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+#     if product_category:
+#         items = ProductModel.objects.filter(product_category__category_name=product_category)
+#     paginator = Paginator(items, 6)  
+#     page_number = request.GET.get('page')
+#     page_obj = paginator.get_page(page_number)
     
-    context = {
-        'items': page_obj,
-        'categories': categories,
-        'prod': product_category
-    }
-    return render(request, 'product.html', context)
+#     context = {
+#         'items': page_obj,
+#         'categories': categories,
+#         'prod': product_category
+#     }
+#     return render(request, 'product.html', context)

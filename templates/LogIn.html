@@ -13,7 +13,7 @@
         <input type="text" name="username" placeholder="Enter your name">
         <label for="password">Password</label>
         <input type="password" name="password" placeholder="Enter your password">
-        <a href="#">forget password</a>
+        <a href="{% url 'password_reset' %}">forget password</a>
         <a href="{% url 'user_signIn' %}">Sign up</a>
         <input type="submit" value="log in">
     </form>

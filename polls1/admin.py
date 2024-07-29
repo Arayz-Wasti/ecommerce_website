@@ -42,6 +42,10 @@ class ReviewModelAdmin(admin.ModelAdmin):
 class AddToCartAdmin(admin.ModelAdmin):
     list_display = ["user","product", "image", "price", "quantity"]
 
+@admin.register(OrderProductDetails)
+class OrderDetail(admin.ModelAdmin):
+    list_display=['user','name','image','price','quantity']
+
 @admin.register(ContactUs)
 class ContactUsReg(admin.ModelAdmin):
     list_display=['name','email','subject','message']
@@ -55,3 +59,6 @@ class FaqModelReg(admin.ModelAdmin):
 @admin.register(AboutUs)
 class AboutUs(admin.ModelAdmin):
     list_display = ['heading','paragraph']
+@admin.register(Profile)
+class AboutUs(admin.ModelAdmin):
+    list_display = ['user','forget_password_token','created_at']

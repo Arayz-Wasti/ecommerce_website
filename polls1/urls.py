@@ -24,5 +24,7 @@ urlpatterns = [
     path('sign/',views.user_signUp,name='user_signIn'),
     path('log_in/', views.user_log_in, name='log_in'),
     path('log_out/', views.log_out, name='log_out'),
-    path('product-category/<str:product_category>/',views.product,name='product_category')
-]
+    path('password_reset/',views.password_reset,name='password_reset'),
+    path('forget_password/<slug:token>/',views.forget_password,name='forget_password'),
+#     path('product-category/<str:product_category>/',views.product,name='product_category')
+ ]
